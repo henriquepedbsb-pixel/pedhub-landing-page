@@ -358,7 +358,9 @@
                 <p class="text-slate-400 text-sm">Seja avisado em primeira mão quando as vagas de lançamento forem abertas.</p>
             </div>
             
-            <form action="SEU_LINK_DO_FORMSPREE_AQUI" method="POST" class="bg-slate-800/80 border border-slate-700 p-8 rounded-3xl space-y-6">
+            <form id="form-lista-espera" action="https://formspree.io/f/mkjrjael" method="POST" class="bg-slate-800/80 border border-slate-700 p-8 rounded-3xl space-y-6">
+                <input type="hidden" name="_subject" value="Nova inscrição na lista de espera do PedHub">
+                <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none">
                 <div class="grid sm:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-xs font-semibold text-slate-300 uppercase">Nome Completo</label>
@@ -382,12 +384,13 @@
                 <div class="flex items-start space-x-3 pt-2">
                     <input type="checkbox" name="consentimento_lgpd" value="sim" required class="mt-1 rounded bg-slate-900 border-slate-700 text-cyan-600 focus:ring-cyan-500">
                     <span class="text-xs text-slate-400 leading-relaxed">
-                        Concordo em receber comunicações sobre o lançamento do PedHub App e declaro estar ciente da <a href="#" class="underline text-cyan-400">Política de Privacidade</a> (LGPD).
+                        Concordo em receber comunicações sobre o lançamento do PedHub App e declaro estar ciente da <a href="/privacidade.html" target="_blank" rel="noopener" class="underline text-cyan-400">Política de Privacidade</a> (LGPD).
                     </span>
                 </div>
-                <button type="submit" class="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-base transition-colors shadow-lg">
+                <button type="submit" id="btn-lista-espera" class="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-base transition-colors shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
                     Garantir Vaga na Lista de Espera
                 </button>
+                <p id="msg-lista-espera" class="hidden text-sm text-center rounded-xl px-4 py-3" role="status" aria-live="polite"></p>
             </form>
         </div>
     </section>
@@ -406,12 +409,54 @@
                 </div>
                 <div class="flex space-x-6">
                     <a href="#" class="hover:text-white transition-colors">Termos de Uso</a>
-                    <a href="#" class="hover:text-white transition-colors">Política de Privacidade</a>
+                    <a href="/privacidade.html" class="hover:text-white transition-colors">Política de Privacidade</a>
                     <a href="mailto:henrique.pedhub@gmail.com" class="hover:text-white transition-colors">Suporte</a>
                 </div>
             </div>
         </div>
     </footer>
+
+    <script>
+    // Envio da lista de espera sem sair da página. Sem JavaScript, o
+    // formulário continua funcionando pelo envio normal do navegador.
+    (function () {
+        var form = document.getElementById('form-lista-espera');
+        var btn = document.getElementById('btn-lista-espera');
+        var msg = document.getElementById('msg-lista-espera');
+        if (!form || !btn || !msg || !window.fetch || !window.FormData) return;
+
+        function mostrar(texto, ok) {
+            msg.textContent = texto;
+            msg.className = 'text-sm text-center rounded-xl px-4 py-3 ' +
+                (ok ? 'bg-emerald-900/60 text-emerald-200 border border-emerald-700'
+                    : 'bg-rose-900/60 text-rose-200 border border-rose-700');
+        }
+
+        form.addEventListener('submit', function (ev) {
+            ev.preventDefault();
+            var textoBotao = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'Accept': 'application/json' }
+            }).then(function (r) {
+                if (r.ok) {
+                    form.reset();
+                    mostrar('Inscrição recebida! Você será avisado em primeira mão quando as vagas abrirem.', true);
+                } else {
+                    mostrar('Não foi possível enviar agora. Tente de novo em instantes ou escreva para henrique.pedhub@gmail.com.', false);
+                }
+            }).catch(function () {
+                mostrar('Sem conexão no momento. Verifique a internet e tente de novo.', false);
+            }).then(function () {
+                btn.disabled = false;
+                btn.textContent = textoBotao;
+            });
+        });
+    })();
+    </script>
 
 </body>
 </html>
